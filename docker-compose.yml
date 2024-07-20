@@ -1,0 +1,22 @@
+services:
+  app:
+    build: docker/nginx
+    ports:
+      - "80:80"
+    volumes: &appvolumes
+      - ~/.composer:/var/www/.composer:cached
+      - ~/.ssh/id_rsa:/var/www/.ssh/id_rsa:cached
+      - ~/.ssh/known_hosts:/var/www/.ssh/known_hosts:cached
+      - ./grav:/var/www/html:cached
+    extra_hosts: &appExtraHosts
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: 'curl --fail 127.0.0.1 || exit 1'
+    depends_on:
+      phpfpm:
+        condition: service_started
+
+  phpfpm:
+    build: docker/phpfpm
+    volumes: *appvolumes
+    extra_hosts: *appExtraHosts
